@@ -1,17 +1,20 @@
+"""
+Django admin configuration for appointments and providers.
+Enhanced with custom displays, filters, and analytics dashboard.
+"""
+
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
-from .models import Appointment
+from .models import Appointment, Provider
 
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    """
-    Admin interface for Appointment model.
-    """
+    """Admin interface for appointments with enhanced tracking."""
     list_display = [
         'id',
-        'provider_name',
+        'provider',
         'client_email',
         'appointment_time',
         'appointment_type',
@@ -24,6 +27,7 @@ class AppointmentAdmin(admin.ModelAdmin):
     
     list_filter = [
         'is_paid',
+        'provider',
         'appointment_type',
         'confirmation_sent',
         'calendar_synced',
@@ -32,7 +36,7 @@ class AppointmentAdmin(admin.ModelAdmin):
     ]
     
     search_fields = [
-        'provider_name',
+        'provider__name',
         'client_email',
         'stripe_payment_intent_id',
     ]
@@ -46,13 +50,14 @@ class AppointmentAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Appointment Details', {
-            'fields': ('provider_name', 'appointment_time', 'appointment_type', 'notes')
+            'fields': ('provider', 'appointment_time', 'appointment_type', 'notes')
         }),
         ('Patient Information', {
             'fields': ('client_email',)
         }),
         ('Payment Information', {
-            'fields': ('is_paid', 'amount_paid', 'stripe_payment_intent_id')
+            'fields': ('is_paid', 'amount_paid', 'stripe_payment_intent_id'),
+            'description': 'Amount is automatically calculated based on provider and appointment type'
         }),
         ('Email & Calendar', {
             'fields': ('confirmation_sent', 'reminder_sent', 'calendar_synced', 'google_calendar_event_id')
@@ -102,3 +107,89 @@ class AppointmentAdmin(admin.ModelAdmin):
             return format_html('<span style="color: green;">✓</span>')
         return format_html('<span style="color: gray;">✗</span>')
     calendar_status.short_description = 'Calendar Synced'
+
+
+@admin.register(Provider)
+class ProviderAdmin(admin.ModelAdmin):
+    """Admin interface for providers with pricing and revenue tracking."""
+    list_display = [
+        'id',
+        'name',
+        'specialty',
+        'consultation_price',
+        'follow_up_price',
+        'is_active',
+        'appointment_count',
+        'created_at',
+    ]
+    
+    list_filter = [
+        'is_active',
+        'specialty',
+        'created_at',
+    ]
+    
+    search_fields = [
+        'name',
+        'email',
+        'specialty',
+    ]
+    
+    readonly_fields = [
+        'created_at',
+        'updated_at',
+        'appointment_count',
+        'total_revenue',
+    ]
+    
+    fieldsets = (
+        ('Provider Information', {
+            'fields': ('name', 'specialty', 'email', 'phone', 'is_active')
+        }),
+        ('Pricing Configuration', {
+            'fields': ('consultation_price', 'follow_up_price'),
+            'description': 'Set different prices for consultation and follow-up appointments'
+        }),
+        ('About', {
+            'fields': ('bio',),
+            'classes': ('collapse',)
+        }),
+        ('Statistics', {
+            'fields': ('appointment_count', 'total_revenue'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def appointment_count(self, obj):
+        """Display total number of appointments."""
+        count = obj.appointments.count()
+        return format_html(
+            '<span style="font-weight: bold; color: #417690;">{}</span>',
+            count
+        )
+    appointment_count.short_description = 'Total Appointments'
+    
+    def total_revenue(self, obj):
+        """Display total revenue from this provider."""
+        from django.db.models import Sum
+        revenue = obj.appointments.filter(is_paid=True).aggregate(
+            total=Sum('amount_paid')
+        )['total'] or 0
+        return format_html(
+            '<span style="font-weight: bold; color: green;">${}</span>',
+            f'{revenue:.2f}'
+        )
+    total_revenue.short_description = 'Total Revenue'
+    
+    def save_model(self, request, obj, form, change):
+        """Custom save to handle price updates."""
+        super().save_model(request, obj, form, change)
+        
+        # Optionally update future unpaid appointments with new prices
+        if change and ('consultation_price' in form.changed_data or 'follow_up_price' in form.changed_data):
+            # This is optional - you might not want to update existing appointments
+            pass

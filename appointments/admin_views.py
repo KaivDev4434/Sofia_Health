@@ -1,3 +1,8 @@
+"""
+Custom admin dashboard for appointment analytics.
+Displays metrics, revenue tracking, and performance indicators.
+"""
+
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Sum, Avg, Q
@@ -8,10 +13,9 @@ from .models import Appointment
 
 @staff_member_required
 def admin_dashboard(request):
-    """
-    Custom admin dashboard with analytics and key metrics.
-    """
-    # Get date ranges
+    """Display analytics dashboard with key metrics and insights."""
+    
+    # Calculate date ranges for filtering
     now = timezone.now()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=today_start.weekday())

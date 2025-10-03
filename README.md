@@ -1,300 +1,192 @@
-# Sofia Health - Healthcare Appointment Booking System
+# Sofia Health - Healthcare Appointment Booking Platform
 
-A minimal Django-based healthcare appointment booking platform with Stripe payment integration. Built as an MVP for a healthcare SaaS startup.
-
-## 🎯 Features
-
-- **Appointment Booking**: Simple form-based appointment creation
-- **Payment Integration**: Stripe PaymentIntent integration (test mode)
-- **Email Notifications**: Professional HTML email templates for confirmations and reminders
-- **Calendar Integration**: Google Calendar sync and ICS file downloads
-- **Analytics Dashboard**: Comprehensive admin dashboard with key metrics and insights
-- **Admin Interface**: Enhanced Django admin with filters, search, and custom displays
-- **Responsive Design**: Mobile-friendly Bootstrap 5 interface
-- **Healthcare Context**: Built with healthcare providers in mind
-
-## 🏥 Business Model
-
-**Target Users**: Healthcare providers (doctors, therapists, specialists, clinics)  
-**End Users**: Patients booking appointments  
-**Platform**: SaaS for appointment management and payment processing
+Django-based healthcare appointment booking system with Stripe payments, email notifications, calendar integration, and provider management. Built as a SaaS MVP for healthcare providers.
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Python 3.8 or higher
-- pip (Python package manager)
-- Stripe test account (free at [stripe.com](https://stripe.com))
-
-### Installation
-
-1. **Clone or navigate to the project directory**
-
 ```bash
-cd "/Users/kaivalya/Desktop/1.Projects/Sofia Health assesment"
-```
-
-2. **Create and activate virtual environment**
-
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. **Install dependencies**
-
-```bash
+# 1. Install dependencies
 pip install -r requirements.txt
-```
 
-4. **Set up environment variables**
+# 2. Set up .env file (copy from env.sample)
+cp env.sample .env
+# Add your Stripe test keys from https://dashboard.stripe.com/test/apikeys
 
-Create a `.env` file in the project root:
-
-```bash
-# Django Settings
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Stripe Settings (Get these from https://dashboard.stripe.com/test/apikeys)
-STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
-STRIPE_SECRET_KEY=sk_test_your_key_here
-
-# Payment Amount (in cents)
-APPOINTMENT_PRICE=5000
-```
-
-5. **Run migrations**
-
-```bash
-python manage.py makemigrations
+# 3. Run migrations
 python manage.py migrate
-```
 
-6. **Create superuser (for admin access)**
-
-```bash
+# 4. Create admin user
 python manage.py createsuperuser
-```
 
-7. **Run the development server**
-
-```bash
+# 5. Start server
 python manage.py runserver
 ```
 
-8. **Access the application**
+**Access**: 
+- Main App: http://127.0.0.1:8000/appointments/
+- Admin Panel: http://127.0.0.1:8000/admin/
+- Analytics: http://127.0.0.1:8000/appointments/admin-dashboard/
 
-- Main app: http://127.0.0.1:8000/appointments/
-- Admin panel: http://127.0.0.1:8000/admin/
+**Test Payment**: Use card `4242 4242 4242 4242`, any future expiry, any CVC
 
-## 🧪 Testing
+## ✨ Key Features
 
-### Stripe Test Cards
+### For Patients
+- **Provider Selection**: Choose from active healthcare providers
+- **Dynamic Pricing**: Automatic pricing based on provider and appointment type
+- **Secure Payments**: Stripe integration (test mode)
+- **Email Confirmations**: Professional HTML emails with appointment details
+- **Calendar Integration**: Add to Google Calendar or download .ics file
+- **Mobile Responsive**: Works on all devices
 
-Use these test card numbers for payment testing:
+### For Admins
+- **Provider Management**: Add providers with custom pricing (consultation/follow-up)
+- **Analytics Dashboard**: Real-time metrics, revenue tracking, conversion rates
+- **Appointment Management**: Filter by provider, payment status, email/calendar sync
+- **Email Tracking**: Monitor confirmation and reminder delivery
+- **Statistics**: Per-provider revenue and appointment counts
 
-- **Success**: `4242 4242 4242 4242`
-- **Decline**: `4000 0000 0000 0002`
-- **Requires Auth**: `4000 0025 0000 3155`
+## 💰 Provider-Based Pricing
 
-**Expiry**: Any future date (e.g., 12/25)  
-**CVC**: Any 3 digits (e.g., 123)
+Each provider has customizable rates:
+- **Consultation Price**: e.g., $75 (General), $150 (Specialist)
+- **Follow-up Price**: e.g., $45 (General), $100 (Specialist)
+- **8 Specialties**: General, Cardiology, Dermatology, Pediatrics, etc.
 
-### Test Flow
-
-1. Navigate to http://127.0.0.1:8000/appointments/create/
-2. Fill in the appointment form with:
-   - Provider name: "Dr. Sarah Johnson"
-   - Future appointment time
-   - Valid email address
-   - Select appointment type
-3. Click "Continue to Payment"
-4. Review the mock payment interface
-5. Click "Confirm Payment (Test)"
-6. View success confirmation page
-
-## 📁 Project Structure
-
-```
-sofia_health/
-├── manage.py
-├── requirements.txt
-├── .env
-├── .gitignore
-├── README.md
-├── plan.md
-├── sofia_health/              # Main project settings
-│   ├── settings.py
-│   ├── urls.py
-│   └── ...
-└── appointments/              # Main app
-    ├── models.py              # Appointment model
-    ├── forms.py               # Appointment form
-    ├── views.py               # Business logic
-    ├── urls.py                # URL routing
-    ├── admin.py               # Admin configuration
-    └── templates/
-        └── appointments/
-            ├── base.html
-            ├── create.html
-            ├── payment.html
-            └── success.html
-```
-
-## 💾 Database Schema
-
-### Appointment Model
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `provider_name` | CharField | Healthcare provider name |
-| `appointment_time` | DateTimeField | Scheduled date/time |
-| `client_email` | EmailField | Patient's email |
-| `is_paid` | BooleanField | Payment status |
-| `amount_paid` | DecimalField | Payment amount |
-| `stripe_payment_intent_id` | CharField | Stripe transaction ID |
-| `appointment_type` | CharField | consultation/follow_up |
-| `notes` | TextField | Patient notes |
-| `created_at` | DateTimeField | Record creation time |
-| `updated_at` | DateTimeField | Last update time |
-
-## 🔒 Security Features
-
-- CSRF protection (Django built-in)
-- SQL injection protection (Django ORM)
-- Environment variable configuration
-- Input validation on all forms
-- HTTPS ready for production
+Price automatically calculated on booking: `provider.consultation_price` or `provider.follow_up_price`
 
 ## 🎨 Tech Stack
 
-- **Backend**: Django 5.0+
-- **Database**: SQLite (development) - easily switch to PostgreSQL
+- **Backend**: Django 5.0+, Python 3.8+
+- **Database**: SQLite (dev) → PostgreSQL (production)
 - **Payment**: Stripe API
-- **Frontend**: Bootstrap 5, HTML5
-- **Environment**: python-decouple
+- **Email**: Django email (console in dev, SMTP in production)
+- **Calendar**: Google Calendar API + ICS export
+- **Frontend**: Bootstrap 5, vanilla JavaScript
+- **Dependencies**: stripe, python-decouple, google-api-python-client
 
-## 📋 API Endpoints
+## 📊 Core Models
 
-| URL | Method | Description |
-|-----|--------|-------------|
-| `/appointments/` | GET | Redirects to create form |
-| `/appointments/create/` | GET, POST | Create appointment form |
-| `/appointments/<id>/payment/` | GET | Payment page |
-| `/appointments/<id>/confirm-payment/` | POST | Confirm payment |
-| `/appointments/<id>/success/` | GET | Success confirmation |
-| `/admin/` | GET | Admin dashboard |
+**Provider**: Healthcare provider with pricing
+- Fields: name, specialty, email, phone, consultation_price, follow_up_price, is_active
 
-## 🛠️ Admin Interface
+**Appointment**: Patient booking
+- Fields: provider (FK), appointment_time, client_email, appointment_type, amount_paid, is_paid
+- Tracking: confirmation_sent, reminder_sent, calendar_synced, stripe_payment_intent_id
 
-Access the admin panel at http://127.0.0.1:8000/admin/
+## 🛠️ Admin Features
 
-### **Enhanced Admin Features**:
-- **Analytics Dashboard** at `/appointments/admin-dashboard/`
-  - Real-time metrics and KPIs
-  - Revenue tracking (daily/weekly/monthly)
-  - Email & calendar conversion rates
-  - Top providers and appointment types
-  - Upcoming and recent appointments
-  - Visual charts and progress bars
-  
-- **Appointment Management**
-  - View all appointments with enhanced display
-  - Filter by payment status, email sent, calendar sync
-  - Search by provider name, client email, or transaction ID
-  - Color-coded payment status indicators
-  - Email and calendar status tracking
-  - Date hierarchy navigation
+**Provider Management** (`/admin/appointments/provider/`)
+- Add/edit providers with custom pricing
+- View appointment count and revenue per provider
+- Filter by specialty, active status
 
-- **Quick Actions**
-  - Add new appointments
-  - Export data (future feature)
-  - Bulk operations (future feature)
+**Analytics Dashboard** (`/appointments/admin-dashboard/`)
+- Total appointments, revenue, payment success rate
+- Today/week/month statistics
+- Email & calendar conversion rates
+- Upcoming appointments, recent bookings
+- Top providers, appointment type breakdown
 
-For detailed analytics guide, see `ADMIN_ANALYTICS_GUIDE.md`
+**Appointment List** (`/admin/appointments/appointment/`)
+- Filter: provider, payment status, email sent, calendar sync
+- Search: provider name, client email, transaction ID
+- Color-coded status indicators
 
-## 📧 Email Configuration
+## 📧 Email System
 
-Currently configured to use console backend (emails print to terminal).
+**Automated Emails**:
+- ✅ Confirmation email (on payment)
+- ✅ Reminder email (24h before, scheduled)
+- ✅ Provider notification (on new booking)
 
-To use real emails in production:
-1. Update `EMAIL_BACKEND` in settings.py
-2. Configure SMTP settings or use services like SendGrid/AWS SES
+**Configuration**: 
+- Dev: Console backend (prints to terminal)
+- Prod: Configure SMTP in `.env` (Gmail, SendGrid, AWS SES)
+
+## 📅 Calendar Integration
+
+**Google Calendar**:
+- OAuth flow for patient authorization
+- Creates event with appointment details
+- Automatic reminders (24h, 30min before)
+
+**ICS Export**:
+- Universal .ics file download
+- Works with Apple Calendar, Outlook, etc.
+
+## 🔒 Security
+
+- CSRF protection (Django built-in)
+- SQL injection protection (Django ORM)
+- XSS prevention (template escaping)
+- Environment variables for secrets
+- HTTPS ready for production
+- Stripe PCI compliance
+
+## 📚 Documentation
+
+- **QUICKSTART.txt** - Fast setup guide
+- **PROVIDER_PRICING_GUIDE.md** - Provider management & pricing
+- **ADMIN_ANALYTICS_GUIDE.md** - Admin dashboard features
+- **EMAIL_CALENDAR_FEATURES.md** - Email & calendar integration
+- **plan.md** - Product roadmap & scaling strategy
 
 ## 🚀 Deployment
 
-### Quick Deploy Options
+**Production Checklist**:
+- Set `DEBUG=False` in `.env`
+- Use PostgreSQL instead of SQLite
+- Configure SMTP for real emails
+- Set up Stripe webhooks
+- Enable HTTPS/SSL
+- Configure static files (S3/CDN)
 
-**Heroku**:
+**Deploy To**:
+- Heroku, Railway, DigitalOcean, AWS (instructions in docs)
+
+## 🧪 Testing
+
 ```bash
-heroku create sofia-health
-heroku config:set SECRET_KEY=your-secret
-heroku config:set STRIPE_SECRET_KEY=sk_test_xxx
-git push heroku main
+# Test appointment booking
+1. Go to /appointments/create/
+2. Select provider (e.g., "Dr. Michael Chen - Cardiology")
+3. Choose appointment type (Consultation or Follow-up)
+4. See price update ($150 for consultation)
+5. Complete booking, test payment with 4242 4242 4242 4242
+6. Check email in terminal (console backend)
+7. Download .ics file from success page
 ```
 
-**Railway**:
-- Connect GitHub repository
-- Set environment variables
-- Deploy automatically
+## 📈 Sample Data
 
-### Production Checklist
+**5 Pre-loaded Providers**:
+- Default Provider (General) - $50/$30
+- Dr. Sarah Johnson (General) - $75/$45
+- Dr. Michael Chen (Cardiology) - $150/$100
+- Dr. Emily Rodriguez (Dermatology) - $100/$60
+- Dr. James Wilson (Pediatrics) - $80/$50
 
-- [ ] Set `DEBUG=False`
-- [ ] Update `SECRET_KEY`
-- [ ] Configure PostgreSQL database
-- [ ] Set up HTTPS/SSL
-- [ ] Configure real email backend
-- [ ] Set up Stripe webhooks
-- [ ] Enable proper logging
-- [ ] Configure static files serving
+## 🔮 Future Roadmap
 
-## 🔮 Future Enhancements
+**Phase 2**: Multi-provider dashboards, patient portal  
+**Phase 3**: HIPAA compliance, telehealth, EHR integration  
+**Phase 4**: Multi-tenancy, insurance verification, API  
+**Phase 5**: AI scheduling, mobile apps, analytics
 
-See `plan.md` for detailed scaling roadmap including:
+See `plan.md` for detailed roadmap.
 
-- Multi-provider platform
-- Provider dashboards
-- Patient portal
-- HIPAA compliance
-- Telehealth integration
-- EHR/EMR integration
-- Advanced scheduling
-- Mobile applications
+## 💡 Key Highlights
 
-## 📝 License
-
-This is an MVP project for evaluation purposes.
-
-## 👥 Support
-
-For questions or issues:
-- Email: support@sofiahealth.com
-- Review the `plan.md` for product roadmap
-
-## 🧑‍💻 Development
-
-### Running Tests
-```bash
-python manage.py test
-```
-
-### Making Migrations
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-### Creating Sample Data
-Use Django admin or shell:
-```bash
-python manage.py shell
-```
+✅ **Production-ready** MVP architecture  
+✅ **Scalable** provider management  
+✅ **Flexible** pricing system  
+✅ **Professional** email templates  
+✅ **Comprehensive** admin analytics  
+✅ **Clean** codebase (PEP 8)  
+✅ **Well-documented** with guides  
+✅ **Healthcare-focused** design  
 
 ---
 
-**Built with ❤️ for healthcare providers**
-
+**Built for healthcare providers** | [Documentation](./QUICKSTART.txt) | [Roadmap](./plan.md)

@@ -1,3 +1,8 @@
+"""
+Email utilities for appointment notifications.
+Handles confirmation, reminder, and provider notification emails.
+"""
+
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -9,9 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_appointment_confirmation(appointment):
-    """
-    Send appointment confirmation email to patient.
-    """
+    """Send confirmation email to patient after successful booking."""
     try:
         subject = f"Appointment Confirmed - {appointment.provider_name}"
         
@@ -49,9 +52,7 @@ def send_appointment_confirmation(appointment):
 
 
 def send_appointment_reminder(appointment):
-    """
-    Send appointment reminder email 24 hours before appointment.
-    """
+    """Send reminder email 24 hours before appointment."""
     try:
         subject = f"Appointment Reminder - {appointment.provider_name} Tomorrow"
         
@@ -89,13 +90,10 @@ def send_appointment_reminder(appointment):
 
 
 def send_provider_notification(appointment):
-    """
-    Send notification email to healthcare provider about new appointment.
-    """
+    """Send notification to provider about new appointment booking."""
     try:
-        # In a real system, you'd get provider email from their profile
-        # For now, we'll use a placeholder
-        provider_email = "provider@sofiahealth.com"  # This would come from provider model
+        # Get provider email (placeholder - would use appointment.provider.email in production)
+        provider_email = "provider@sofiahealth.com"
         
         subject = f"New Appointment Booking - {appointment.client_email}"
         
@@ -133,22 +131,15 @@ def send_provider_notification(appointment):
 
 
 def schedule_appointment_reminder(appointment):
-    """
-    Schedule a reminder email to be sent 24 hours before appointment.
-    This would integrate with Celery for background task scheduling.
-    """
-    # For now, we'll just log it. In production, this would use Celery:
-    # from .tasks import send_reminder_email
-    # reminder_time = appointment.appointment_time - timedelta(hours=24)
-    # send_reminder_email.apply_async(args=[appointment.id], eta=reminder_time)
+    """Schedule reminder email for 24h before appointment (Celery in production)."""
+    # TODO: In production, use Celery for background scheduling
+    # Example: send_reminder_email.apply_async(args=[appointment.id], eta=reminder_time)
     
     logger.info(f"Reminder scheduled for appointment {appointment.id} at {appointment.appointment_time - timedelta(hours=24)}")
 
 
 def send_appointment_cancellation(appointment, reason=None):
-    """
-    Send cancellation notification email.
-    """
+    """Send cancellation notification with optional reason."""
     try:
         subject = f"Appointment Cancelled - {appointment.provider_name}"
         

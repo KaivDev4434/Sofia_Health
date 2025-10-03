@@ -1,21 +1,24 @@
+"""
+Appointment booking form with validation.
+Handles provider selection, time validation, and form rendering.
+"""
+
 from django import forms
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from .models import Appointment
+from .models import Appointment, Provider
 
 
 class AppointmentForm(forms.ModelForm):
-    """
-    Form for creating new appointment bookings.
-    """
+    """Form for creating appointment bookings with dynamic pricing."""
     
     class Meta:
         model = Appointment
-        fields = ['provider_name', 'appointment_time', 'client_email', 'appointment_type', 'notes']
+        fields = ['provider', 'appointment_time', 'client_email', 'appointment_type', 'notes']
         widgets = {
-            'provider_name': forms.TextInput(attrs={
+            'provider': forms.Select(attrs={
                 'class': 'form-control',
-                'placeholder': 'e.g., Dr. Sarah Johnson',
+                'id': 'id_provider',
             }),
             'appointment_time': forms.DateTimeInput(attrs={
                 'class': 'form-control',
@@ -27,6 +30,7 @@ class AppointmentForm(forms.ModelForm):
             }),
             'appointment_type': forms.Select(attrs={
                 'class': 'form-control',
+                'id': 'id_appointment_type',
             }),
             'notes': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -35,12 +39,21 @@ class AppointmentForm(forms.ModelForm):
             }),
         }
         labels = {
-            'provider_name': 'Healthcare Provider',
+            'provider': 'Select Healthcare Provider',
             'appointment_time': 'Appointment Date & Time',
             'client_email': 'Your Email Address',
             'appointment_type': 'Appointment Type',
             'notes': 'Notes (Optional)',
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only show active providers
+        self.fields['provider'].queryset = Provider.objects.filter(is_active=True)
+        
+        # Add help text
+        self.fields['provider'].help_text = 'Select your healthcare provider'
+        self.fields['appointment_type'].help_text = 'Pricing varies by appointment type'
     
     def clean_appointment_time(self):
         """
@@ -55,16 +68,16 @@ class AppointmentForm(forms.ModelForm):
         
         return appointment_time
     
-    def clean_provider_name(self):
+    def clean(self):
         """
-        Clean and validate provider name.
+        Additional validation for provider availability.
         """
-        provider_name = self.cleaned_data.get('provider_name')
+        cleaned_data = super().clean()
+        provider = cleaned_data.get('provider')
         
-        if provider_name:
-            provider_name = provider_name.strip()
-            if len(provider_name) < 2:
-                raise ValidationError("Provider name must be at least 2 characters long.")
+        if provider and not provider.is_active:
+            raise ValidationError(
+                f"{provider.name} is not currently accepting appointments."
+            )
         
-        return provider_name
-
+        return cleaned_data

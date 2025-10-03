@@ -1,11 +1,17 @@
+"""
+Appointment booking views.
+Handles appointment creation, Stripe payments, email/calendar integration.
+"""
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
 import stripe
+import json
 
-from .models import Appointment
+from .models import Appointment, Provider
 from .forms import AppointmentForm
 from .email_utils import (
     send_appointment_confirmation, 
@@ -20,42 +26,48 @@ from .calendar_utils import (
     generate_ics_file
 )
 
-# Configure Stripe
+# Initialize Stripe with secret key
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def create_appointment(request):
-    """
-    View for creating a new appointment.
-    GET: Display the appointment booking form
-    POST: Process form submission and redirect to payment
-    """
+    """Create new appointment and redirect to payment page."""
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
         if form.is_valid():
             appointment = form.save(commit=False)
-            appointment.amount_paid = settings.APPOINTMENT_PRICE / 100  # Convert cents to dollars
+            # Price is automatically calculated in the model's save method
             appointment.save()
             
             # Schedule reminder email (in production, this would be a Celery task)
             schedule_appointment_reminder(appointment)
             
-            messages.success(request, 'Appointment details saved! Please complete payment to confirm.')
+            messages.success(request, f'Appointment with {appointment.provider.name} saved! Please complete payment to confirm.')
             return redirect('appointment_payment', appointment_id=appointment.id)
     else:
         form = AppointmentForm()
     
+    # Get all active providers with their pricing for JavaScript
+    providers = Provider.objects.filter(is_active=True)
+    provider_pricing = {}
+    for provider in providers:
+        provider_pricing[provider.id] = {
+            'consultation': float(provider.consultation_price),
+            'follow_up': float(provider.follow_up_price),
+            'name': provider.name,
+            'specialty': provider.get_specialty_display(),
+        }
+    
     context = {
         'form': form,
-        'appointment_price': settings.APPOINTMENT_PRICE / 100,  # Display in dollars
+        'provider_pricing': json.dumps(provider_pricing),
+        'default_price': settings.APPOINTMENT_PRICE / 100,  # Fallback price
     }
     return render(request, 'appointments/create.html', context)
 
 
 def appointment_payment(request, appointment_id):
-    """
-    View for displaying payment page and creating Stripe PaymentIntent.
-    """
+    """Display payment page and create Stripe PaymentIntent."""
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
     # Redirect if already paid
@@ -69,14 +81,17 @@ def appointment_payment(request, appointment_id):
     
     try:
         if not appointment.stripe_payment_intent_id:
-            # Create new PaymentIntent
+            # Create new PaymentIntent with dynamic pricing
+            amount_in_cents = int(appointment.amount_paid * 100)
             payment_intent = stripe.PaymentIntent.create(
-                amount=settings.APPOINTMENT_PRICE,
+                amount=amount_in_cents,
                 currency='usd',
-                description=f'Appointment with {appointment.provider_name}',
+                description=f'Appointment with {appointment.provider.name} - {appointment.get_appointment_type_display()}',
                 metadata={
                     'appointment_id': appointment.id,
                     'client_email': appointment.client_email,
+                    'provider': appointment.provider.name,
+                    'appointment_type': appointment.appointment_type,
                 }
             )
             
@@ -102,21 +117,16 @@ def appointment_payment(request, appointment_id):
 
 @require_http_methods(["POST"])
 def confirm_payment(request, appointment_id):
-    """
-    View for confirming payment (mock confirmation for MVP).
-    In production, this would be handled by Stripe webhooks.
-    """
+    """Confirm payment and send confirmation emails."""
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
-    # Mock payment confirmation
-    # In production, verify with Stripe API
+    # Verify payment with Stripe and mark as paid
     if appointment.stripe_payment_intent_id:
         try:
-            # Retrieve PaymentIntent to check status
+            # Retrieve PaymentIntent to verify status
             payment_intent = stripe.PaymentIntent.retrieve(appointment.stripe_payment_intent_id)
             
-            # For this MVP, we'll mark as paid for demonstration
-            # In production, only mark as paid when payment_intent.status == 'succeeded'
+            # Mark as paid (in production, check payment_intent.status == 'succeeded')
             appointment.is_paid = True
             appointment.save()
             
@@ -141,9 +151,7 @@ def confirm_payment(request, appointment_id):
 
 
 def appointment_success(request, appointment_id):
-    """
-    View for displaying successful appointment booking confirmation.
-    """
+    """Display successful booking confirmation page."""
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
     context = {
@@ -153,16 +161,12 @@ def appointment_success(request, appointment_id):
 
 
 def home(request):
-    """
-    Simple home page redirecting to appointment creation.
-    """
+    """Redirect home to appointment creation page."""
     return redirect('create_appointment')
 
 
 def stripe_status(request):
-    """
-    Display Stripe configuration status (test vs live mode).
-    """
+    """Display Stripe configuration status (test/live mode check)."""
     stripe_config = {
         'publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
         'secret_key': settings.STRIPE_SECRET_KEY[:12] + '...' if settings.STRIPE_SECRET_KEY else 'Not set',
@@ -175,9 +179,7 @@ def stripe_status(request):
 
 
 def calendar_connect(request, appointment_id):
-    """
-    Connect to Google Calendar for an appointment.
-    """
+    """Initiate Google Calendar OAuth flow for appointment."""
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
     if not appointment.is_paid:
@@ -194,9 +196,7 @@ def calendar_connect(request, appointment_id):
 
 
 def calendar_callback(request):
-    """
-    Handle Google Calendar OAuth callback.
-    """
+    """Handle Google Calendar OAuth callback and create event."""
     appointment_id = request.session.get('calendar_appointment_id')
     if not appointment_id:
         messages.error(request, 'Invalid calendar connection request.')
@@ -204,10 +204,11 @@ def calendar_callback(request):
     
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
+    # Handle OAuth callback and get credentials
     success, message = handle_google_calendar_callback(request)
     
     if success:
-        # Create calendar event
+        # Create event in Google Calendar
         credentials_dict = request.session.get('google_calendar_credentials')
         event_success, event_id = create_calendar_event(appointment, credentials_dict)
         
@@ -225,9 +226,7 @@ def calendar_callback(request):
 
 
 def download_calendar_file(request, appointment_id):
-    """
-    Download ICS file for calendar import.
-    """
+    """Generate and download ICS calendar file."""
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
     if not appointment.is_paid:

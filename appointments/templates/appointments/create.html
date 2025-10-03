@@ -27,29 +27,39 @@
                 <p class="text-muted mb-0 mt-2">Fill in the details below to schedule your healthcare appointment</p>
             </div>
             <div class="card-body p-4">
-                <!-- Price Display -->
-                <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
+                <!-- Dynamic Price Display -->
+                <div class="alert alert-info d-flex justify-content-between align-items-center mb-4" id="price-display">
                     <span><strong>Appointment Fee:</strong></span>
-                    <span class="h5 mb-0">${{ appointment_price }}</span>
+                    <span class="h5 mb-0" id="price-amount">Select provider and type</span>
+                </div>
+                
+                <div class="alert alert-warning" id="price-note" style="display: none;">
+                    <small><strong>Note:</strong> Price is calculated based on selected provider and appointment type</small>
                 </div>
                 
                 <form method="post" novalidate>
                     {% csrf_token %}
                     
-                    <!-- Provider Name -->
+                    <!-- Provider Selection -->
                     <div class="mb-4">
-                        <label for="{{ form.provider_name.id_for_label }}" class="form-label">
-                            {{ form.provider_name.label }} <span class="text-danger">*</span>
+                        <label for="{{ form.provider.id_for_label }}" class="form-label">
+                            {{ form.provider.label }} <span class="text-danger">*</span>
                         </label>
-                        {{ form.provider_name }}
-                        {% if form.provider_name.errors %}
+                        {{ form.provider }}
+                        {% if form.provider.errors %}
                             <div class="text-danger mt-1">
-                                {% for error in form.provider_name.errors %}
+                                {% for error in form.provider.errors %}
                                     <small>{{ error }}</small>
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <small class="form-text text-muted">Enter the name of your healthcare provider</small>
+                        <small class="form-text text-muted">{{ form.provider.help_text }}</small>
+                        <div id="provider-info" class="mt-2" style="display: none;">
+                            <div class="alert alert-light">
+                                <strong>Provider Details:</strong>
+                                <div id="provider-details"></div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Appointment Time -->
@@ -138,5 +148,67 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Provider pricing data from server
+const providerPricing = {{ provider_pricing|safe }};
+
+function updatePrice() {
+    const providerId = document.getElementById('id_provider').value;
+    const appointmentType = document.getElementById('id_appointment_type').value;
+    const priceDisplay = document.getElementById('price-amount');
+    const priceNote = document.getElementById('price-note');
+    const providerInfo = document.getElementById('provider-info');
+    const providerDetails = document.getElementById('provider-details');
+    
+    if (providerId && appointmentType && providerPricing[providerId]) {
+        const provider = providerPricing[providerId];
+        const price = provider[appointmentType];
+        
+        priceDisplay.textContent = `$${price.toFixed(2)}`;
+        priceNote.style.display = 'block';
+        
+        // Show provider info
+        providerInfo.style.display = 'block';
+        providerDetails.innerHTML = `
+            <strong>${provider.name}</strong><br>
+            <small class="text-muted">${provider.specialty}</small><br>
+            <span class="badge bg-primary mt-1">Consultation: $${provider.consultation.toFixed(2)}</span>
+            <span class="badge bg-success mt-1">Follow-up: $${provider.follow_up.toFixed(2)}</span>
+        `;
+    } else if (providerId && providerPricing[providerId]) {
+        const provider = providerPricing[providerId];
+        priceDisplay.textContent = 'Select appointment type';
+        providerInfo.style.display = 'block';
+        providerDetails.innerHTML = `
+            <strong>${provider.name}</strong><br>
+            <small class="text-muted">${provider.specialty}</small>
+        `;
+    } else {
+        priceDisplay.textContent = 'Select provider and type';
+        priceNote.style.display = 'none';
+        providerInfo.style.display = 'none';
+    }
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const providerSelect = document.getElementById('id_provider');
+    const typeSelect = document.getElementById('id_appointment_type');
+    
+    if (providerSelect) {
+        providerSelect.addEventListener('change', updatePrice);
+    }
+    
+    if (typeSelect) {
+        typeSelect.addEventListener('change', updatePrice);
+    }
+    
+    // Initial update
+    updatePrice();
+});
+</script>
 {% endblock %}
 

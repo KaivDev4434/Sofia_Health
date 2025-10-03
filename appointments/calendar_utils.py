@@ -1,3 +1,8 @@
+"""
+Google Calendar and ICS file integration utilities.
+Handles OAuth flow, event creation, and calendar file generation.
+"""
+
 from django.conf import settings
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -9,14 +14,12 @@ import json
 
 logger = logging.getLogger(__name__)
 
-# Scopes required for Google Calendar access
+# Google Calendar API scopes
 SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
 
 def create_google_calendar_flow(request):
-    """
-    Create Google OAuth flow for calendar access.
-    """
+    """Create OAuth flow for Google Calendar authorization."""
     flow = Flow.from_client_config(
         {
             "web": {
@@ -44,9 +47,7 @@ def create_google_calendar_flow(request):
 
 
 def handle_google_calendar_callback(request):
-    """
-    Handle OAuth callback and store credentials.
-    """
+    """Handle OAuth callback and store credentials in session."""
     try:
         state = request.session.get('google_oauth_state')
         if not state:
@@ -89,14 +90,12 @@ def handle_google_calendar_callback(request):
 
 
 def create_calendar_event(appointment, credentials_dict=None):
-    """
-    Create a Google Calendar event for the appointment.
-    """
+    """Create Google Calendar event for appointment with reminders."""
     try:
         if not credentials_dict:
             return False, "No calendar credentials available"
         
-        # Build credentials object
+        # Initialize Google Calendar API client
         credentials = Credentials.from_authorized_user_info(credentials_dict, SCOPES)
         
         # Build calendar service
@@ -157,9 +156,7 @@ def create_calendar_event(appointment, credentials_dict=None):
 
 
 def update_calendar_event(appointment, event_id, credentials_dict=None):
-    """
-    Update an existing calendar event.
-    """
+    """Update existing Google Calendar event with new appointment details."""
     try:
         if not credentials_dict:
             return False, "No calendar credentials available"
@@ -199,9 +196,7 @@ def update_calendar_event(appointment, event_id, credentials_dict=None):
 
 
 def delete_calendar_event(event_id, credentials_dict=None):
-    """
-    Delete a calendar event.
-    """
+    """Delete Google Calendar event by ID."""
     try:
         if not credentials_dict:
             return False, "No calendar credentials available"
@@ -224,10 +219,7 @@ def delete_calendar_event(event_id, credentials_dict=None):
 
 
 def generate_ics_file(appointment):
-    """
-    Generate an ICS (iCalendar) file for the appointment.
-    This provides a fallback when Google Calendar integration is not available.
-    """
+    """Generate ICS calendar file for universal calendar import."""
     ics_content = f"""BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sofia Health//Healthcare Appointments//EN

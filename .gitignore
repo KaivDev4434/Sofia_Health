@@ -48,10 +48,11 @@ db.sqlite3-journal
 htmlcov/
 .pytest_cache/
 
-# Documentation (internal)
-SETUP.md
-PROJECT_SUMMARY.md
-plan.md
-ADMIN_ANALYTICS_GUIDE.md
-EMAIL_CALENDAR_FEATURES.md
+# Documentation (internal) - uncomment if you want to exclude from repo
+# QUICKSTART.txt
+# plan.md
+# *_GUIDE.md
+# EMAIL_CALENDAR_FEATURES.md
 
+# Test files
+*.ics
