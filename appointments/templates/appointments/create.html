@@ -1,0 +1,142 @@
+{% extends 'appointments/base.html' %}
+
+{% block title %}Book Appointment - Sofia Health{% endblock %}
+
+{% block content %}
+<!-- Progress Steps -->
+<div class="progress-steps">
+    <div class="step active">
+        <div class="step-number">1</div>
+        <div class="step-label">Appointment Details</div>
+    </div>
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-label">Payment</div>
+    </div>
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-label">Confirmation</div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">📅 Book Your Appointment</h4>
+                <p class="text-muted mb-0 mt-2">Fill in the details below to schedule your healthcare appointment</p>
+            </div>
+            <div class="card-body p-4">
+                <!-- Price Display -->
+                <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
+                    <span><strong>Appointment Fee:</strong></span>
+                    <span class="h5 mb-0">${{ appointment_price }}</span>
+                </div>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Provider Name -->
+                    <div class="mb-4">
+                        <label for="{{ form.provider_name.id_for_label }}" class="form-label">
+                            {{ form.provider_name.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.provider_name }}
+                        {% if form.provider_name.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.provider_name.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Enter the name of your healthcare provider</small>
+                    </div>
+                    
+                    <!-- Appointment Time -->
+                    <div class="mb-4">
+                        <label for="{{ form.appointment_time.id_for_label }}" class="form-label">
+                            {{ form.appointment_time.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.appointment_time }}
+                        {% if form.appointment_time.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.appointment_time.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Select a date and time in the future</small>
+                    </div>
+                    
+                    <!-- Client Email -->
+                    <div class="mb-4">
+                        <label for="{{ form.client_email.id_for_label }}" class="form-label">
+                            {{ form.client_email.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.client_email }}
+                        {% if form.client_email.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.client_email.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">We'll send the confirmation to this email</small>
+                    </div>
+                    
+                    <!-- Appointment Type -->
+                    <div class="mb-4">
+                        <label for="{{ form.appointment_type.id_for_label }}" class="form-label">
+                            {{ form.appointment_type.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.appointment_type }}
+                        {% if form.appointment_type.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.appointment_type.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">
+                            {{ form.notes.label }}
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.notes.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Optional: Brief description of your concern</small>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Continue to Payment →
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Info Card -->
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6 class="text-primary mb-3">ℹ️ What happens next?</h6>
+                <ul class="mb-0">
+                    <li>Complete the secure payment on the next page</li>
+                    <li>Receive instant email confirmation</li>
+                    <li>Your provider will be notified of the appointment</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

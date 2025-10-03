@@ -1,0 +1,159 @@
+{% extends 'appointments/base.html' %}
+
+{% block title %}Payment - Sofia Health{% endblock %}
+
+{% block content %}
+<!-- Progress Steps -->
+<div class="progress-steps">
+    <div class="step completed">
+        <div class="step-number">✓</div>
+        <div class="step-label">Appointment Details</div>
+    </div>
+    <div class="step active">
+        <div class="step-number">2</div>
+        <div class="step-label">Payment</div>
+    </div>
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-label">Confirmation</div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Appointment Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">📋 Appointment Summary</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Provider:</strong>
+                        <p class="mb-0">{{ appointment.provider_name }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Date & Time:</strong>
+                        <p class="mb-0">{{ appointment.appointment_time|date:"F d, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Patient Email:</strong>
+                        <p class="mb-0">{{ appointment.client_email }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Type:</strong>
+                        <p class="mb-0">{{ appointment.get_appointment_type_display }}</p>
+                    </div>
+                    {% if appointment.notes %}
+                    <div class="col-12">
+                        <strong>Notes:</strong>
+                        <p class="mb-0">{{ appointment.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Total Amount:</h5>
+                    <h4 class="mb-0 text-primary">${{ appointment.amount_paid }}</h4>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Section -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">💳 Payment Information</h4>
+            </div>
+            <div class="card-body p-4">
+                {% if error %}
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> {{ error }}
+                    </div>
+                {% endif %}
+                
+                {% if payment_intent %}
+                    <div class="alert alert-success mb-4">
+                        <h6 class="alert-heading">🔒 Secure Payment</h6>
+                        <p class="mb-2">Payment Intent Created Successfully</p>
+                        <small>ID: {{ payment_intent.id }}</small>
+                    </div>
+                    
+                    <!-- Mock Payment Interface -->
+                    <div class="border rounded p-4 mb-4" style="background-color: #f8f9fa;">
+                        <h6 class="mb-3">Test Payment Details</h6>
+                        
+                        <div class="alert alert-info">
+                            <strong>🧪 Test Mode:</strong> This is a demonstration payment interface.
+                            <br>
+                            <small>In production, this would integrate Stripe Elements for secure card input.</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Card Number (Test)</label>
+                            <input type="text" class="form-control" value="4242 4242 4242 4242" readonly>
+                            <small class="text-muted">Stripe test card number</small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Expiry</label>
+                                <input type="text" class="form-control" value="12/25" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CVC</label>
+                                <input type="text" class="form-control" value="123" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Cardholder Name</label>
+                            <input type="text" class="form-control" value="Test User" readonly>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirm Payment Form -->
+                    <form method="post" action="{% url 'confirm_payment' appointment.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-warning">
+                            <strong>⚠️ MVP Note:</strong> This is a simplified payment flow for demonstration. 
+                            Click below to simulate payment confirmation.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                ✓ Confirm Payment (Test)
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <strong>Amount:</strong> ${{ appointment.amount_paid }} USD | 
+                            <strong>Status:</strong> {{ payment_intent.status|title }}
+                        </small>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        Unable to initialize payment. Please try again or contact support.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Security Notice -->
+        <div class="card mt-4 border-success">
+            <div class="card-body">
+                <h6 class="text-success mb-3">🔒 Your payment is secure</h6>
+                <p class="small mb-0">
+                    We use Stripe, a PCI-compliant payment processor trusted by millions of businesses worldwide. 
+                    Your payment information is encrypted and never stored on our servers.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,168 @@
+{% extends 'appointments/base.html' %}
+
+{% block title %}Booking Confirmed - Sofia Health{% endblock %}
+
+{% block content %}
+<!-- Progress Steps -->
+<div class="progress-steps">
+    <div class="step completed">
+        <div class="step-number">✓</div>
+        <div class="step-label">Appointment Details</div>
+    </div>
+    <div class="step completed">
+        <div class="step-number">✓</div>
+        <div class="step-label">Payment</div>
+    </div>
+    <div class="step active completed">
+        <div class="step-number">✓</div>
+        <div class="step-label">Confirmation</div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Success Message -->
+        <div class="card border-success mb-4">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="40" cy="40" r="40" fill="#00a86b" opacity="0.1"/>
+                        <circle cx="40" cy="40" r="32" fill="#00a86b"/>
+                        <path d="M28 40L36 48L52 32" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                
+                <h2 class="text-success mb-3">✓ Appointment Confirmed!</h2>
+                <p class="lead mb-0">Your healthcare appointment has been successfully booked and paid for.</p>
+            </div>
+        </div>
+        
+        <!-- Appointment Details -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">📅 Appointment Details</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong class="text-muted">Appointment ID:</strong>
+                        <p class="mb-0 h5">#{{ appointment.id }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong class="text-muted">Status:</strong>
+                        <p class="mb-0">
+                            <span class="badge bg-success">{{ appointment.get_status }}</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong class="text-muted d-block mb-1">Healthcare Provider</strong>
+                        <p class="mb-0">{{ appointment.provider_name }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong class="text-muted d-block mb-1">Appointment Type</strong>
+                        <p class="mb-0">{{ appointment.get_appointment_type_display }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong class="text-muted d-block mb-1">Date</strong>
+                        <p class="mb-0">{{ appointment.appointment_time|date:"l, F d, Y" }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong class="text-muted d-block mb-1">Time</strong>
+                        <p class="mb-0">{{ appointment.appointment_time|time:"g:i A" }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong class="text-muted d-block mb-1">Patient Email</strong>
+                        <p class="mb-0">{{ appointment.client_email }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong class="text-muted d-block mb-1">Amount Paid</strong>
+                        <p class="mb-0 text-success fw-bold">${{ appointment.amount_paid }}</p>
+                    </div>
+                    {% if appointment.notes %}
+                    <div class="col-12 mb-3">
+                        <strong class="text-muted d-block mb-1">Notes</strong>
+                        <p class="mb-0">{{ appointment.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Info -->
+        {% if appointment.stripe_payment_intent_id %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">💳 Payment Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong class="text-muted d-block mb-1">Payment Status</strong>
+                        <span class="badge bg-success">Paid</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong class="text-muted d-block mb-1">Transaction ID</strong>
+                        <small class="font-monospace">{{ appointment.stripe_payment_intent_id }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Next Steps -->
+        <div class="card mb-4 border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📧 What's Next?</h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li class="mb-2">
+                        <strong>Confirmation Email:</strong> A confirmation email has been sent to 
+                        <span class="text-primary">{{ appointment.client_email }}</span>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Provider Notification:</strong> {{ appointment.provider_name }} has been notified of your appointment
+                    </li>
+                    <li class="mb-2">
+                        <strong>Appointment Reminder:</strong> You'll receive a reminder email 24 hours before your appointment
+                    </li>
+                    <li>
+                        <strong>Need to Reschedule?</strong> Contact {{ appointment.provider_name }}'s office or email us at support@sofiahealth.com
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="mb-3">Need anything else?</h6>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{% url 'create_appointment' %}" class="btn btn-primary">
+                        Book Another Appointment
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-secondary">
+                        Print Confirmation
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Support -->
+        <div class="text-center mt-4">
+            <p class="text-muted mb-0">
+                <small>
+                    Questions? Contact us at 
+                    <a href="mailto:support@sofiahealth.com">support@sofiahealth.com</a> or call (555) 123-4567
+                </small>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

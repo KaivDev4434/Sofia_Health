@@ -1,0 +1,177 @@
+{% extends 'appointments/base.html' %}
+
+{% block title %}Stripe Configuration Status{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">🔧 Stripe Configuration Status</h4>
+            </div>
+            <div class="card-body">
+                <!-- Mode Status -->
+                <div class="mb-4">
+                    <h5>Current Mode</h5>
+                    {% if config.is_test_mode %}
+                        <div class="alert alert-success">
+                            <h5 class="alert-heading">✅ TEST MODE ACTIVE</h5>
+                            <p class="mb-0">You're safely using Stripe's test environment. No real money will be charged.</p>
+                        </div>
+                    {% elif config.is_live_mode %}
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading">⚠️ LIVE MODE ACTIVE</h5>
+                            <p class="mb-2"><strong>WARNING:</strong> You're using live Stripe keys. Real money will be charged!</p>
+                            <p class="mb-0">Switch to test keys for development.</p>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <h5 class="alert-heading">⚠️ STRIPE NOT CONFIGURED</h5>
+                            <p class="mb-0">Stripe keys are not set. Please configure your .env file.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Configuration Details -->
+                <div class="mb-4">
+                    <h5>Configuration Details</h5>
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th style="width: 40%;">Publishable Key</th>
+                                <td>
+                                    {% if config.publishable_key %}
+                                        <code>{{ config.publishable_key|slice:":20" }}...</code>
+                                        {% if config.publishable_key|slice:":7" == "pk_test" %}
+                                            <span class="badge bg-success ms-2">TEST</span>
+                                        {% elif config.publishable_key|slice:":7" == "pk_live" %}
+                                            <span class="badge bg-danger ms-2">LIVE</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Secret Key</th>
+                                <td>
+                                    {% if config.secret_key != "Not set" %}
+                                        <code>{{ config.secret_key }}</code>
+                                        {% if config.is_test_mode %}
+                                            <span class="badge bg-success ms-2">TEST</span>
+                                        {% elif config.is_live_mode %}
+                                            <span class="badge bg-danger ms-2">LIVE</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Appointment Price</th>
+                                <td><strong>${{ config.appointment_price }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Test Cards -->
+                {% if config.is_test_mode %}
+                <div class="mb-4">
+                    <h5>Test Cards for Test Mode</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Card Number</th>
+                                    <th>Scenario</th>
+                                    <th>Expiry</th>
+                                    <th>CVC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>4242 4242 4242 4242</code></td>
+                                    <td><span class="badge bg-success">Success</span></td>
+                                    <td>Any future date</td>
+                                    <td>Any 3 digits</td>
+                                </tr>
+                                <tr>
+                                    <td><code>4000 0000 0000 0002</code></td>
+                                    <td><span class="badge bg-danger">Decline</span></td>
+                                    <td>Any future date</td>
+                                    <td>Any 3 digits</td>
+                                </tr>
+                                <tr>
+                                    <td><code>4000 0025 0000 3155</code></td>
+                                    <td><span class="badge bg-warning">Requires Auth</span></td>
+                                    <td>Any future date</td>
+                                    <td>Any 3 digits</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Setup Instructions -->
+                {% if not config.is_test_mode and not config.is_live_mode %}
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">How to Configure Stripe Test Keys:</h6>
+                    <ol class="mb-0">
+                        <li>Sign up at <a href="https://stripe.com" target="_blank">https://stripe.com</a> (free)</li>
+                        <li>Get your test keys from <a href="https://dashboard.stripe.com/test/apikeys" target="_blank">Test API Keys</a></li>
+                        <li>Create/edit your <code>.env</code> file in the project root</li>
+                        <li>Add your keys:
+                            <pre class="mt-2 mb-0 p-2 bg-light"><code>STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+STRIPE_SECRET_KEY=sk_test_your_key_here</code></pre>
+                        </li>
+                        <li>Restart the Django server</li>
+                    </ol>
+                </div>
+                {% endif %}
+
+                <!-- Navigation -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                    <a href="{% url 'create_appointment' %}" class="btn btn-primary">
+                        Book Appointment
+                    </a>
+                    <a href="https://dashboard.stripe.com/test/payments" target="_blank" class="btn btn-outline-secondary">
+                        View Stripe Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Reference -->
+        <div class="card mt-4 border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">📚 Quick Reference</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Test Mode Keys (Safe):</h6>
+                        <ul class="small">
+                            <li><code>pk_test_...</code> - Publishable key</li>
+                            <li><code>sk_test_...</code> - Secret key</li>
+                            <li>No real money charged</li>
+                            <li>View at: /test/payments</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Live Mode Keys (Danger):</h6>
+                        <ul class="small">
+                            <li><code>pk_live_...</code> - Publishable key</li>
+                            <li><code>sk_live_...</code> - Secret key</li>
+                            <li>Real money charged!</li>
+                            <li>Only for production</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
