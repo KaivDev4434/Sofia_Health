@@ -6,7 +6,10 @@ A minimal Django-based healthcare appointment booking platform with Stripe payme
 
 - **Appointment Booking**: Simple form-based appointment creation
 - **Payment Integration**: Stripe PaymentIntent integration (test mode)
-- **Admin Dashboard**: Full Django admin interface for managing appointments
+- **Email Notifications**: Professional HTML email templates for confirmations and reminders
+- **Calendar Integration**: Google Calendar sync and ICS file downloads
+- **Analytics Dashboard**: Comprehensive admin dashboard with key metrics and insights
+- **Admin Interface**: Enhanced Django admin with filters, search, and custom displays
 - **Responsive Design**: Mobile-friendly Bootstrap 5 interface
 - **Healthcare Context**: Built with healthcare providers in mind
 
@@ -189,12 +192,29 @@ sofia_health/
 
 Access the admin panel at http://127.0.0.1:8000/admin/
 
-**Features**:
-- View all appointments
-- Filter by payment status, appointment type, date
-- Search by provider name or client email
-- Edit appointment details
-- View payment information
+### **Enhanced Admin Features**:
+- **Analytics Dashboard** at `/appointments/admin-dashboard/`
+  - Real-time metrics and KPIs
+  - Revenue tracking (daily/weekly/monthly)
+  - Email & calendar conversion rates
+  - Top providers and appointment types
+  - Upcoming and recent appointments
+  - Visual charts and progress bars
+  
+- **Appointment Management**
+  - View all appointments with enhanced display
+  - Filter by payment status, email sent, calendar sync
+  - Search by provider name, client email, or transaction ID
+  - Color-coded payment status indicators
+  - Email and calendar status tracking
+  - Date hierarchy navigation
+
+- **Quick Actions**
+  - Add new appointments
+  - Export data (future feature)
+  - Bulk operations (future feature)
+
+For detailed analytics guide, see `ADMIN_ANALYTICS_GUIDE.md`
 
 ## 📧 Email Configuration
 

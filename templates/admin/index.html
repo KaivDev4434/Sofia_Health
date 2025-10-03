@@ -1,0 +1,163 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}">
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <!-- Custom Sofia Health Header -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div style="color: white;">
+                <h1 style="margin: 0; color: white; font-size: 32px;">🏥 Sofia Health Admin</h1>
+                <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Healthcare Appointment Management System</p>
+            </div>
+            <a href="{% url 'admin_dashboard' %}" style="background: white; color: #667eea; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                📊 View Analytics Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Access Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="font-size: 14px; color: #666; margin-bottom: 10px;">QUICK ACCESS</div>
+            <h3 style="margin: 0 0 15px 0; color: #417690;">Appointment Management</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="{% url 'admin:appointments_appointment_changelist' %}" style="padding: 10px; background: #f8f9fa; border-radius: 6px; text-decoration: none; color: #333; display: block;">
+                    📋 View All Appointments
+                </a>
+                <a href="{% url 'admin:appointments_appointment_add' %}" style="padding: 10px; background: #f8f9fa; border-radius: 6px; text-decoration: none; color: #333; display: block;">
+                    ➕ Add New Appointment
+                </a>
+                <a href="{% url 'stripe_status' %}" target="_blank" style="padding: 10px; background: #f8f9fa; border-radius: 6px; text-decoration: none; color: #333; display: block;">
+                    💳 Check Stripe Status
+                </a>
+            </div>
+        </div>
+        
+        <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="font-size: 14px; color: #666; margin-bottom: 10px;">SYSTEM STATUS</div>
+            <h3 style="margin: 0 0 15px 0; color: #417690;">Platform Features</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: green;">✓</span> Payment Integration (Stripe)
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: green;">✓</span> Email Notifications
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: green;">✓</span> Calendar Integration
+                </li>
+                <li style="padding: 8px 0;">
+                    <span style="color: green;">✓</span> Analytics Dashboard
+                </li>
+            </ul>
+        </div>
+        
+        <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="font-size: 14px; color: #666; margin-bottom: 10px;">RESOURCES</div>
+            <h3 style="margin: 0 0 15px 0; color: #417690;">Documentation</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    📚 README.md - Setup Guide
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    📧 EMAIL_CALENDAR_FEATURES.md
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    🚀 QUICKSTART.txt
+                </li>
+                <li style="padding: 8px 0;">
+                    📋 plan.md - Product Roadmap
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Original Django Admin App List -->
+    {% if app_list %}
+        <div style="margin-top: 30px;">
+            {% for app in app_list %}
+                <div class="app-{{ app.app_label }} module">
+                    <table>
+                        <caption>
+                            <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">{{ app.name }}</a>
+                        </caption>
+                        {% for model in app.models %}
+                            <tr class="model-{{ model.object_name|lower }}">
+                                {% if model.admin_url %}
+                                    <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
+                                {% else %}
+                                    <th scope="row">{{ model.name }}</th>
+                                {% endif %}
+
+                                {% if model.add_url %}
+                                    <td><a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a></td>
+                                {% else %}
+                                    <td>&nbsp;</td>
+                                {% endif %}
+
+                                {% if model.admin_url %}
+                                    {% if model.view_only %}
+                                        <td><a href="{{ model.admin_url }}" class="viewlink">{% translate 'View' %}</a></td>
+                                    {% else %}
+                                        <td><a href="{{ model.admin_url }}" class="changelink">{% translate 'Change' %}</a></td>
+                                    {% endif %}
+                                {% else %}
+                                    <td>&nbsp;</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>{% translate "You don't have permission to view or edit anything." %}</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% translate 'Recent actions' %}</h2>
+        <h3>{% translate 'My actions' %}</h3>
+            {% load log %}
+            {% get_admin_log 10 as admin_log for_user user %}
+            {% if not admin_log %}
+            <p>{% translate 'None available' %}</p>
+            {% else %}
+            <ul class="actionlist">
+            {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                    {{ entry.object_repr }}
+                {% else %}
+                    <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <br>
+                {% if entry.content_type %}
+                    <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                {% else %}
+                    <span class="mini quiet">{% translate 'Unknown content' %}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+            {% endif %}
+    </div>
+</div>
+{% endblock %}
+

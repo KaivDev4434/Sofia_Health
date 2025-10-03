@@ -1,0 +1,14 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Sofia Health//Healthcare Appointments//EN
+BEGIN:VEVENT
+UID:appointment-2@sofiahealth.com
+DTSTAMP:20251003T011222Z
+DTSTART:20251006T221100Z
+DTEND:20251006T231100Z
+SUMMARY:Appointment with Dr. Doc1
+DESCRIPTION:Healthcare appointment\n\nProvider: Dr. Doc1\nType: Consultation\nAppointment ID: #2\n\nNotes: None
+LOCATION:Contact Dr. Doc1 for location details
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR

@@ -44,6 +44,28 @@ class Appointment(models.Model):
         help_text="Stripe PaymentIntent ID for this transaction"
     )
     
+    # Calendar integration
+    google_calendar_event_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Google Calendar event ID"
+    )
+    calendar_synced = models.BooleanField(
+        default=False,
+        help_text="Whether the appointment has been synced to calendar"
+    )
+    
+    # Email notifications
+    confirmation_sent = models.BooleanField(
+        default=False,
+        help_text="Whether confirmation email has been sent"
+    )
+    reminder_sent = models.BooleanField(
+        default=False,
+        help_text="Whether reminder email has been sent"
+    )
+    
     # Healthcare context
     appointment_type = models.CharField(
         max_length=20,

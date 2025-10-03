@@ -1,0 +1,37 @@
+APPOINTMENT REMINDER - Sofia Health
+==================================
+
+Your appointment is tomorrow!
+
+TOMORROW'S APPOINTMENT
+---------------------
+Appointment ID: #{{ appointment.id }}
+Healthcare Provider: {{ appointment.provider_name }}
+Date & Time: {{ appointment.appointment_time|date:"l, F d, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}
+Appointment Type: {{ appointment.get_appointment_type_display }}
+{% if appointment.notes %}Notes: {{ appointment.notes }}{% endif %}
+
+IMPORTANT REMINDERS
+------------------
+• Please arrive 15 minutes early
+• Bring a valid ID and insurance card (if applicable)
+• Bring any relevant medical records or test results
+• If you need to reschedule, contact us immediately
+
+LOCATION & CONTACT
+-----------------
+Provider: {{ appointment.provider_name }}
+Contact: Please call the provider's office for specific location details
+Emergency: If you need to cancel or reschedule, contact us ASAP
+
+VIEW FULL DETAILS
+----------------
+{{ site_url }}/appointments/{{ appointment.id }}/success/
+
+QUESTIONS?
+---------
+Contact us at {{ contact_email }}
+
+---
+Sofia Health - Healthcare Appointment Booking Platform
+This is an automated reminder. Please do not reply to this email.

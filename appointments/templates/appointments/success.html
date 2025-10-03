@@ -138,6 +138,45 @@
             </div>
         </div>
         
+        <!-- Calendar Integration -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">📅 Add to Calendar</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Add this appointment to your calendar to never miss it!</p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6>Google Calendar</h6>
+                        {% if appointment.calendar_synced %}
+                            <div class="alert alert-success">
+                                <strong>✅ Synced!</strong> This appointment is already in your Google Calendar.
+                            </div>
+                        {% else %}
+                            <a href="{% url 'calendar_connect' appointment.id %}" class="btn btn-outline-primary">
+                                📅 Add to Google Calendar
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <h6>Other Calendars</h6>
+                        <a href="{% url 'download_calendar_file' appointment.id %}" class="btn btn-outline-secondary">
+                            📥 Download .ics File
+                        </a>
+                        <small class="d-block text-muted mt-2">
+                            Works with Apple Calendar, Outlook, and other calendar apps
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <strong>💡 Pro Tip:</strong> Calendar events include appointment details and automatic reminders!
+                </div>
+            </div>
+        </div>
+
         <!-- Actions -->
         <div class="card">
             <div class="card-body text-center">

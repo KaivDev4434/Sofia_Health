@@ -1,0 +1,37 @@
+{% extends "admin/change_list.html" %}
+
+{% block content_title %}
+    {% if show_dashboard_link %}
+        <div style="margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="color: white;">
+                    <h1 style="margin: 0; color: white; font-size: 24px;">📊 Appointments Management</h1>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Manage and view all healthcare appointments</p>
+                </div>
+                <a href="{{ dashboard_url }}" style="background: white; color: #667eea; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
+                    📈 View Analytics Dashboard
+                </a>
+            </div>
+        </div>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
+
+{% block result_list %}
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div style="background: white; padding: 15px; border-radius: 6px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="font-size: 24px; font-weight: bold; color: #417690;">{{ cl.result_count }}</div>
+                <div style="font-size: 12px; color: #666;">Total Appointments</div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="font-size: 14px; color: #666;">Quick Actions</div>
+                <div style="margin-top: 8px;">
+                    <a href="{% url 'admin:appointments_appointment_add' %}" class="addlink" style="font-size: 12px;">Add Appointment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ block.super }}
+{% endblock %}
+
